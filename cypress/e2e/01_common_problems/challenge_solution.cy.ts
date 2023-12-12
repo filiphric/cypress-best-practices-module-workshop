@@ -36,7 +36,7 @@ it('checks list name, card attributes and opens card detail', () => {
 
 });
 
-// challenge #4: this test is failing. use browser console to see context of each command and debug why it is failing
+// challenge #2: this test is failing. it would be impossible to find out what’s happening without console. use it to see context of each command and debug why it is failing
 it('checks card attributes', () => {
 
   cy.get('[data-cy=due-date]')
@@ -47,5 +47,5 @@ it('checks card attributes', () => {
     .first() // we need to re-query our element
     .should('be.visible')
 
-});
+})
 

@@ -27,3 +27,15 @@ it('checks list name, card attributes and opens card detail', () => {
     .click()
 
 });
+
+// challenge #2: this test is failing. it would be impossible to find out what’s happening without console. use it to see context of each command and debug why it is failing
+it('checks card attributes', () => {
+
+  cy.visit('/board/1')
+
+  cy.get('[data-cy=due-date]')
+    .first()
+    .should('have.attr', 'class')
+    .and('be.visible')
+
+})

@@ -1,53 +1,61 @@
-import { cardsLoadRandomly } from '@scripts/evilCode'
+import { cardsLoadRandomly } from "@scripts/evilCode";
 
-it('queries, actions, assertions', () => {
+it('pausing a test', () => {
 
-  cardsLoadRandomly(3000)
+  cardsLoadRandomly(1000)
 
   cy.visit('/board/1')
 
-  cy.get('[data-cy=card]') // query
-    .last() // query
-    .should('contain.text', 'Explain intercept') // assertion
-    .click() // action
+  cy.get('[data-cy=card]')
+    .first()
+    .pause()
+    .click()
+
+  cy.get('[data-cy="card-detail-title"]')
+    .should('have.value', 'Milk')
 
 });
 
-it('has no cards (network)', () => {
+it('console.log()', () => {
 
-  cy.intercept(/cards/)
-    .as('cards')
+  cy.request('POST', '/api/reset')
 
-  cy.visit('/board/1')
+  // send request
+  cy.request('POST', '/api/boards', { name: 'new board' })
+    .as('boardRequest')
 
-  cy.wait('@cards')
+  // intercept request in UI
+  cy.intercept('GET', '/api/boards')
+    .as('boardIntercept')
 
-  cy.get('[data-cy=card]')
-    .should('not.exist')
+  // API test
+  cy.get('@boardRequest')
+    .then((response) => {
+      console.log(response.body)
+      expect(response.body.name).to.eq('new board')
+    })
 
-});
+  // UI test  
+  cy.visit('/')
+  cy.wait('@boardIntercept')
+    .then(({ response }) => {
+      console.log(response.body)
+      expect(response.body[0].name).to.eq('new board')
+    })
 
-it('has no cards (DOM)', () => {
-
-  cy.visit('/board/1')
-
-  cy.contains('Loading cards ...')
-    .should('be.visible')
-    .should('not.exist')
-
-  cy.get('[data-cy=card]')
-    .should('not.exist')
+  cy.get('[data-cy=board-item]')
+    .invoke('text')
+    .then(cy.log)
 
 });
 
 Cypress._.times(10, () => {
 
-  it('flaky test', () => {
+  it('retries', () => {
 
-    let randomNumber = Cypress._.random(100)
+    const number = Cypress._.random(10)
 
-    cy.wrap(randomNumber)
-      .then(num => expect(num).gt(10))
+    expect(number).to.be.greaterThan(1)
 
   });
 
@@ -55,8 +63,6 @@ Cypress._.times(10, () => {
 
 afterEach(function () {
   if (this.currentTest.state === 'failed') {
-    let stopButton = window.top.document.body.querySelector('header button.stop') as HTMLElement
-
-    stopButton.click()
+    eval("window.top.document.body.querySelector('header button.stop').click()");
   }
 });

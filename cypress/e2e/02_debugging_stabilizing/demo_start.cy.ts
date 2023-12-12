@@ -1,41 +1,52 @@
-import { cardsLoadRandomly } from '@scripts/evilCode'
+import { cardsLoadRandomly } from "@scripts/evilCode";
 
-it('queries, actions, assertions', () => {
+it('pausing a test', () => {
 
-  cardsLoadRandomly(3000)
+  cardsLoadRandomly(1000)
 
   cy.visit('/board/1')
 
   cy.get('[data-cy=card]')
-    .last()
-    .should('contain.text', 'Explain intercept')
+    .first()
     .click()
 
-});
-
-it('has no cards (network)', () => {
-
-  cy.visit('/board/1')
-
-  cy.get('[data-cy=card]')
-    .should('not.exist')
+  cy.get('[data-cy="card-detail-title"]')
+    .should('have.value', 'Milk')
 
 });
 
-it('has no cards (DOM)', () => {
+it('console.log()', () => {
 
-  cy.visit('/board/1')
+  cy.request('POST', '/api/reset')
 
-  cy.get('[data-cy=card]')
-    .should('not.exist')
+  // send request
+  cy.request('POST', '/api/boards', { name: 'new board' })
+    .as('boardRequest')
+
+  // intercept request in UI
+  cy.intercept('GET', '/api/boards')
+    .as('boardIntercept')
+
+  // API test
+  cy.get('@boardRequest')
+    .then((response) => {
+      // @ts-ignore
+      expect(response.body.name).to.eq('new board')
+    })
+
+  // UI test  
+  cy.visit('/')
+  cy.wait('@boardIntercept')
+    .then(({ response }) => {
+      expect(response.body.name).to.eq('new board')
+    })
 
 });
 
-it('flaky test', () => {
+it('retries', () => {
 
-  let randomNumber = Cypress._.random(100)
+  const number = Cypress._.random(10)
 
-  cy.wrap(randomNumber)
-    .then(num => expect(num).gt(10))
+  expect(number).to.be.greaterThan(1)
 
 });
